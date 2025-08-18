@@ -4,15 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Crosby Studios</title>
-
   <style>
     /* ---------- Base ---------- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root{
-      /* overall corner spacing */
       --ui-pad: clamp(12px, 2.2vw, 40px);
       --ui-color: #fff;
-      /* type scales (desktop <= > mobile) */
       --ui-size: clamp(11px, 1.2vw, 14px);
       --cap-size: clamp(11px, 1.1vw, 13px);
       --logo-size: clamp(24px, 4.2vw, 42px);
@@ -23,13 +20,13 @@
       color: var(--ui-color);
       overflow: hidden;
       background: #000;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
       -webkit-user-select: none; user-select: none;
       -webkit-touch-callout: none;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* account for iOS safe areas (notches, home bar) */
+    /* Safe area helpers (iOS notch/home bar) */
     .pad-top    { padding-top:    calc(var(--ui-pad) + env(safe-area-inset-top)); }
     .pad-right  { padding-right:  calc(var(--ui-pad) + env(safe-area-inset-right)); }
     .pad-bottom { padding-bottom: calc(var(--ui-pad) + env(safe-area-inset-bottom)); }
@@ -41,41 +38,39 @@
     .top-right { top: 0; right: 0; }
     .bottom-left { bottom: 0; left: 0; }
     .top-right a { color: var(--ui-color); text-decoration: none; }
-
     .bottom-left img { width: var(--logo-size); height: auto; display: block; }
 
     /* ---------- Carousel ---------- */
     .carousel { position: fixed; inset: 0; overflow: hidden; }
-
     .track{
       display: flex; height: 100%;
       will-change: transform;
-      /* IMPORTANT for mobile swipe */
-      touch-action: none;           /* capture gestures (iOS Safari) */
+      touch-action: pan-y;      /* capture horizontal swipes on iOS */
       cursor: grab;
     }
     .track.dragging { cursor: grabbing; }
 
     .slide{
       min-width: 100vw; height: 100vh; flex: 0 0 100%;
-      background-position: center; background-size: cover; background-repeat: no-repeat;
-      position: relative;
+      position: relative; overflow: hidden; background:#000;
     }
-
-    /* caption that rides with each slide */
+    .slide img.bg{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit: cover; object-position: center;
+      pointer-events:none; -webkit-user-drag: none;
+    }
     .slide-caption{
-      position: absolute;
+      position:absolute;
       right: calc(var(--ui-pad) + env(safe-area-inset-right));
       bottom: calc(var(--ui-pad) + env(safe-area-inset-bottom));
-      font-weight: 700;
-      font-size: var(--cap-size);
-      letter-spacing: .04em;
-      pointer-events: none;
+      font-weight:700; font-size: var(--cap-size); letter-spacing:.04em;
+      pointer-events:none;
     }
   </style>
 </head>
 <body>
-  <!-- Fixed UI (with safe-area padding helpers) -->
+  <!-- Fixed UI -->
   <div class="ui top-left pad-top pad-left">© 2014–2025 CROSBY STUDIOS</div>
   <div class="ui top-right pad-top pad-right"><a href="info.html">INFO</a></div>
   <div class="ui bottom-left pad-bottom pad-left"><img src="images/logo.svg" alt="Logo" /></div>
@@ -93,111 +88,103 @@
       { src: "images/photo3.jpeg", caption: "ALUMINUM SERIES" }
     ];
 
-    const track = document.getElementById("track");
+    const track = document.getElementById('track');
 
-    /* Build slides (with clones for looping) */
+    // Build each slide as a DIV with an IMG + caption (caption rides with the image)
     function makeSlide(data, extra = ""){
-      const el = document.createElement("div");
-      el.className = `slide ${extra}`.trim();
-      el.style.backgroundImage = `url('${data.src}')`;
+      const s = document.createElement('div');
+      s.className = `slide ${extra}`.trim();
 
-      const cap = document.createElement("div");
-      cap.className = "slide-caption";
+      const img = document.createElement('img');
+      img.className = 'bg';
+      img.alt = data.caption || "";
+      img.src = data.src;
+      img.onerror = () => { s.style.background = '#111'; console.error('Image failed:', data.src); };
+      s.appendChild(img);
+
+      const cap = document.createElement('div');
+      cap.className = 'slide-caption';
       cap.textContent = data.caption || "";
-      el.appendChild(cap);
+      s.appendChild(cap);
 
-      return el;
+      return s;
     }
-    track.appendChild(makeSlide(slides[slides.length - 1], "clone"));
-    slides.forEach(s => track.appendChild(makeSlide(s)));
-    track.appendChild(makeSlide(slides[0], "clone"));
+
+    // Build with clones for infinite loop
+    track.appendChild(makeSlide(slides[slides.length - 1], 'clone'));
+    slides.forEach(sl => track.appendChild(makeSlide(sl)));
+    track.appendChild(makeSlide(slides[0], 'clone'));
 
     /* ------------ State ------------ */
-    let index = 1;                         // first real slide
-    let baseX = -index * window.innerWidth;
-    let dragStartX = 0;
+    let index = 1;                 // first real slide
+    let baseX = -index * innerWidth;
     let dragging = false;
-    let autoTimer = null;
+    let startX = 0;
+    let auto = null;
 
     function setX(px, animate=false){
-      track.style.transition = animate ? "transform .6s ease" : "none";
+      track.style.transition = animate ? 'transform .6s ease' : 'none';
       track.style.transform = `translate3d(${px}px,0,0)`;
     }
     setX(baseX);
 
-    /* Keep width in sync on rotate/resize */
-    addEventListener("resize", () => {
-      baseX = -index * innerWidth;
-      setX(baseX, false);
-    });
+    // Keep width in sync on rotate/resize
+    addEventListener('resize', () => { baseX = -index * innerWidth; setX(baseX); });
 
-    /* ------------ Pointer events (works on iOS/Android/desktop) ------------ */
-    track.addEventListener("pointerdown", (e) => {
-      dragging = true;
-      dragStartX = e.clientX;
+    /* ------------ Pointer events (mobile + desktop) ------------ */
+    track.addEventListener('pointerdown', e => {
+      dragging = true; startX = e.clientX;
       track.setPointerCapture(e.pointerId);
-      track.classList.add("dragging");
+      track.classList.add('dragging');
       stopAuto();
     });
 
-    track.addEventListener("pointermove", (e) => {
+    track.addEventListener('pointermove', e => {
       if(!dragging) return;
-      const delta = e.clientX - dragStartX;
-      setX(baseX + delta, false);
+      const delta = e.clientX - startX;
+      setX(baseX + delta);
     });
 
     function endDrag(e){
       if(!dragging) return;
-      dragging = false;
-      track.classList.remove("dragging");
-
-      const delta = e.clientX - dragStartX;
+      dragging = false; track.classList.remove('dragging');
+      const delta = e.clientX - startX;
       const threshold = innerWidth * 0.15;
-
       if (delta < -threshold) goTo(index + 1);
       else if (delta > threshold) goTo(index - 1);
       else setX(baseX, true);
-
       startAuto();
     }
-    track.addEventListener("pointerup", endDrag);
-    track.addEventListener("pointercancel", endDrag);
-    track.addEventListener("dragstart", (e) => e.preventDefault());
+    track.addEventListener('pointerup', endDrag);
+    track.addEventListener('pointercancel', endDrag);
+
+    // On iOS Safari, prevent the browser from hijacking the gesture
+    track.addEventListener('touchmove', e => { e.preventDefault(); }, { passive: false });
+    track.addEventListener('dragstart', e => e.preventDefault());
 
     /* ------------ Navigation / Looping ------------ */
     function goTo(newIndex){
       index = newIndex;
       baseX = -index * innerWidth;
       setX(baseX, true);
-
-      track.addEventListener("transitionend", () => {
-        if (index === 0){
-          index = slides.length;
-          baseX = -index * innerWidth;
-          setX(baseX, false);
-        } else if (index === slides.length + 1){
-          index = 1;
-          baseX = -index * innerWidth;
-          setX(baseX, false);
+      track.addEventListener('transitionend', () => {
+        if(index === 0){
+          index = slides.length; baseX = -index * innerWidth; setX(baseX);
+        } else if(index === slides.length + 1){
+          index = 1; baseX = -index * innerWidth; setX(baseX);
         }
       }, { once: true });
     }
 
     /* ------------ Autoplay ------------ */
-    function startAuto(){
-      stopAuto();
-      autoTimer = setInterval(() => goTo(index + 1), 5000);
-    }
-    function stopAuto(){
-      if (autoTimer) clearInterval(autoTimer);
-      autoTimer = null;
-    }
+    function startAuto(){ stopAuto(); auto = setInterval(() => goTo(index + 1), 5000); }
+    function stopAuto(){ if(auto) clearInterval(auto); auto = null; }
     startAuto();
 
     /* Optional keyboard */
-    addEventListener("keydown", (e) => {
-      if (e.key === "ArrowRight"){ stopAuto(); goTo(index + 1); startAuto(); }
-      if (e.key === "ArrowLeft"){  stopAuto(); goTo(index - 1); startAuto(); }
+    addEventListener('keydown', e => {
+      if(e.key === 'ArrowRight'){ stopAuto(); goTo(index + 1); startAuto(); }
+      if(e.key === 'ArrowLeft'){  stopAuto(); goTo(index - 1); startAuto(); }
     });
   </script>
 </body>
