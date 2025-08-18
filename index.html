@@ -8,11 +8,15 @@
     /* ---------- Base ---------- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root{
+      /* Defaults (desktop/tablet) */
       --ui-pad: clamp(12px, 2.2vw, 40px);
       --ui-color: #fff;
       --ui-size: clamp(11px, 1.2vw, 14px);
       --cap-size: clamp(11px, 1.1vw, 13px);
       --logo-size: clamp(24px, 4.2vw, 42px);
+      --ui-weight: 400;
+      --ui-lspace: .04em;
+      --ui-opacity: 1;
     }
     html, body { height: 100%; }
     body{
@@ -26,14 +30,20 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Safe area helpers (iOS notch/home bar) */
+    /* iOS safe areas */
     .pad-top    { padding-top:    calc(var(--ui-pad) + env(safe-area-inset-top)); }
     .pad-right  { padding-right:  calc(var(--ui-pad) + env(safe-area-inset-right)); }
     .pad-bottom { padding-bottom: calc(var(--ui-pad) + env(safe-area-inset-bottom)); }
     .pad-left   { padding-left:   calc(var(--ui-pad) + env(safe-area-inset-left)); }
 
     /* ---------- Fixed UI ---------- */
-    .ui { position: fixed; z-index: 5; font-size: var(--ui-size); letter-spacing: .04em; }
+    .ui {
+      position: fixed; z-index: 5;
+      font-size: var(--ui-size);
+      letter-spacing: var(--ui-lspace);
+      font-weight: var(--ui-weight);
+      opacity: var(--ui-opacity);
+    }
     .top-left  { top: 0; left: 0; }
     .top-right { top: 0; right: 0; }
     .bottom-left { bottom: 0; left: 0; }
@@ -45,7 +55,7 @@
     .track{
       display: flex; height: 100%;
       will-change: transform;
-      touch-action: pan-y;      /* capture horizontal swipes on iOS */
+      touch-action: pan-y;  /* capture horizontal swipes on iOS */
       cursor: grab;
     }
     .track.dragging { cursor: grabbing; }
@@ -66,6 +76,27 @@
       bottom: calc(var(--ui-pad) + env(safe-area-inset-bottom));
       font-weight:700; font-size: var(--cap-size); letter-spacing:.04em;
       pointer-events:none;
+    }
+
+    /* ---------- MOBILE-ONLY OVERRIDES ---------- */
+    @media (max-width: 767px) {
+      :root{
+        --ui-pad: 20px;      /* corner spacing on phones */
+        --ui-size: 14px;     /* © / INFO size */
+        --cap-size: 13px;    /* caption size */
+        --logo-size: 28px;   /* logo corner size */
+        --ui-lspace: 0.02em;
+        --ui-weight: 400;
+        --ui-opacity: 0.95;
+      }
+      /* Ensure captions stay readable over bright photos on mobile */
+      .slide-caption{
+        font-weight: 600;
+        line-height: 1.3;
+        background: rgba(0,0,0,0.35);
+        padding: 4px 6px;
+        border-radius: 4px;
+      }
     }
   </style>
 </head>
@@ -90,7 +121,6 @@
 
     const track = document.getElementById('track');
 
-    // Build each slide as a DIV with an IMG + caption (caption rides with the image)
     function makeSlide(data, extra = ""){
       const s = document.createElement('div');
       s.className = `slide ${extra}`.trim();
@@ -128,23 +158,20 @@
     }
     setX(baseX);
 
-    // Keep width in sync on rotate/resize
     addEventListener('resize', () => { baseX = -index * innerWidth; setX(baseX); });
 
-    /* ------------ Pointer events (mobile + desktop) ------------ */
+    /* Pointer events (mobile + desktop) */
     track.addEventListener('pointerdown', e => {
       dragging = true; startX = e.clientX;
       track.setPointerCapture(e.pointerId);
       track.classList.add('dragging');
       stopAuto();
     });
-
     track.addEventListener('pointermove', e => {
       if(!dragging) return;
       const delta = e.clientX - startX;
       setX(baseX + delta);
     });
-
     function endDrag(e){
       if(!dragging) return;
       dragging = false; track.classList.remove('dragging');
@@ -158,11 +185,10 @@
     track.addEventListener('pointerup', endDrag);
     track.addEventListener('pointercancel', endDrag);
 
-    // On iOS Safari, prevent the browser from hijacking the gesture
+    // Prevent iOS from hijacking horizontal swipe
     track.addEventListener('touchmove', e => { e.preventDefault(); }, { passive: false });
     track.addEventListener('dragstart', e => e.preventDefault());
 
-    /* ------------ Navigation / Looping ------------ */
     function goTo(newIndex){
       index = newIndex;
       baseX = -index * innerWidth;
@@ -176,12 +202,10 @@
       }, { once: true });
     }
 
-    /* ------------ Autoplay ------------ */
     function startAuto(){ stopAuto(); auto = setInterval(() => goTo(index + 1), 5000); }
     function stopAuto(){ if(auto) clearInterval(auto); auto = null; }
     startAuto();
 
-    /* Optional keyboard */
     addEventListener('keydown', e => {
       if(e.key === 'ArrowRight'){ stopAuto(); goTo(index + 1); startAuto(); }
       if(e.key === 'ArrowLeft'){  stopAuto(); goTo(index - 1); startAuto(); }
