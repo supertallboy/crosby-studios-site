@@ -1,29 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Crosby Studios</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Top left copyright -->
+  <!-- Fixed UI -->
   <div class="top-left">© 2014–2025 CROSBY STUDIOS</div>
+  <div class="top-right"><a href="info.html">INFO</a></div>
+  <div class="bottom-left"><img src="images/logo.svg" alt="Logo" /></div>
+  <div class="bottom-right"><span id="caption">THE FOAM ROOM</span></div>
 
-  <!-- Top right INFO -->
-  <div class="top-right">
-    <a href="info.html">INFO</a>
+  <!-- Fullscreen swipeable carousel -->
+  <div class="carousel" id="carousel">
+    <div class="track" id="track"><!-- slides injected by JS --></div>
   </div>
 
-  <!-- Bottom left logo -->
-  <div class="bottom-left">
-    <img src="images/logo.svg" alt="Crosby Studios Logo">
-  </div>
-
-  <!-- Bottom right project title -->
-  <div class="bottom-right">THE FOAM ROOM</div>
-
-  <!-- Background -->
-  <div class="background"></div>
+  <script src="script.js"></script>
 </body>
 </html>
