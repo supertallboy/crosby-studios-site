@@ -8,15 +8,19 @@
     /* ---------- Base ---------- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root{
-      /* Defaults (desktop/tablet) */
-      --ui-pad: clamp(12px, 2.2vw, 40px);
+      /* control distances */
+      --pad-top: 12px;       /* closer or further from top */
+      --pad-bottom: 12px;    /* closer or further from bottom */
+      --pad-left: 60px;      /* move inward from left edge */
+      --pad-right: 60px;     /* move inward from right edge */
+
+      /* fonts + logo */
       --ui-color: #fff;
-      --ui-size: clamp(11px, 1.2vw, 14px);
-      --cap-size: clamp(11px, 1.1vw, 13px);
-      --logo-size: clamp(24px, 4.2vw, 42px);
+      --ui-size: 14px;
+      --cap-size: 13px;
+      --logo-size: 42px;
       --ui-weight: 400;
-      --ui-lspace: .04em;
-      --ui-opacity: 1;
+      --ui-lspace: 0.04em;
     }
     html, body { height: 100%; }
     body{
@@ -30,23 +34,16 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* iOS safe areas */
-    .pad-top    { padding-top:    calc(var(--ui-pad) + env(safe-area-inset-top)); }
-    .pad-right  { padding-right:  calc(var(--ui-pad) + env(safe-area-inset-right)); }
-    .pad-bottom { padding-bottom: calc(var(--ui-pad) + env(safe-area-inset-bottom)); }
-    .pad-left   { padding-left:   calc(var(--ui-pad) + env(safe-area-inset-left)); }
-
     /* ---------- Fixed UI ---------- */
     .ui {
       position: fixed; z-index: 5;
       font-size: var(--ui-size);
       letter-spacing: var(--ui-lspace);
       font-weight: var(--ui-weight);
-      opacity: var(--ui-opacity);
     }
-    .top-left  { top: 0; left: 0; }
-    .top-right { top: 0; right: 0; }
-    .bottom-left { bottom: 0; left: 0; }
+    .top-left  { top: var(--pad-top); left: var(--pad-left); }
+    .top-right { top: var(--pad-top); right: var(--pad-right); }
+    .bottom-left { bottom: var(--pad-bottom); left: var(--pad-left); }
     .top-right a { color: var(--ui-color); text-decoration: none; }
     .bottom-left img { width: var(--logo-size); height: auto; display: block; }
 
@@ -55,7 +52,7 @@
     .track{
       display: flex; height: 100%;
       will-change: transform;
-      touch-action: pan-y;  /* capture horizontal swipes on iOS */
+      touch-action: pan-y;
       cursor: grab;
     }
     .track.dragging { cursor: grabbing; }
@@ -72,24 +69,26 @@
     }
     .slide-caption{
       position:absolute;
-      right: calc(var(--ui-pad) + env(safe-area-inset-right));
-      bottom: calc(var(--ui-pad) + env(safe-area-inset-bottom));
-      font-weight:700; font-size: var(--cap-size); letter-spacing:.04em;
+      right: var(--pad-right);
+      bottom: var(--pad-bottom);
+      font-weight:700;
+      font-size: var(--cap-size);
+      letter-spacing:.04em;
       pointer-events:none;
     }
 
-    /* ---------- MOBILE-ONLY OVERRIDES ---------- */
+    /* ---------- MOBILE OVERRIDES ---------- */
     @media (max-width: 767px) {
       :root{
-        --ui-pad: 20px;      /* corner spacing on phones */
-        --ui-size: 14px;     /* © / INFO size */
-        --cap-size: 13px;    /* caption size */
-        --logo-size: 28px;   /* logo corner size */
-        --ui-lspace: 0.02em;
-        --ui-weight: 400;
-        --ui-opacity: 0.95;
+        --pad-top: 8px;
+        --pad-bottom: 8px;
+        --pad-left: 40px;
+        --pad-right: 40px;
+
+        --ui-size: 13px;
+        --cap-size: 12px;
+        --logo-size: 28px;
       }
-      /* Ensure captions stay readable over bright photos on mobile */
       .slide-caption{
         font-weight: 600;
         line-height: 1.3;
@@ -102,9 +101,9 @@
 </head>
 <body>
   <!-- Fixed UI -->
-  <div class="ui top-left pad-top pad-left">© 2014–2025 CROSBY STUDIOS</div>
-  <div class="ui top-right pad-top pad-right"><a href="info.html">INFO</a></div>
-  <div class="ui bottom-left pad-bottom pad-left"><img src="images/logo.svg" alt="Logo" /></div>
+  <div class="ui top-left">© 2014–2025 CROSBY STUDIOS</div>
+  <div class="ui top-right"><a href="info.html">INFO</a></div>
+  <div class="ui bottom-left"><img src="images/logo.svg" alt="Logo" /></div>
 
   <!-- Carousel -->
   <div class="carousel">
@@ -146,7 +145,7 @@
     track.appendChild(makeSlide(slides[0], 'clone'));
 
     /* ------------ State ------------ */
-    let index = 1;                 // first real slide
+    let index = 1;
     let baseX = -index * innerWidth;
     let dragging = false;
     let startX = 0;
@@ -160,7 +159,7 @@
 
     addEventListener('resize', () => { baseX = -index * innerWidth; setX(baseX); });
 
-    /* Pointer events (mobile + desktop) */
+    /* Pointer events */
     track.addEventListener('pointerdown', e => {
       dragging = true; startX = e.clientX;
       track.setPointerCapture(e.pointerId);
