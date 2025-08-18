@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Crosby Studios</title>
   <style>
-    /* ========== GLOBAL RESET ==========
-       Desktop and Mobile each have their own variable sets below.
-       Edit ONLY the block you want and they won't affect each other.
-    =================================== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; }
     body {
@@ -22,60 +18,41 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ======= DESKTOP / TABLET VARIABLES (≥768px) =======
-       Change these to tweak ONLY desktop/tablet layout.
-       tl = top-left ©
-       tr = top-right INFO
-       bl = bottom-left logo
-       cap = caption (bottom-right by default)
-    ------------------------------------------------------*/
+    /* ===== DESKTOP VARIABLES ===== */
     :root {
-      /* positions */
       --tl-top: 16px;      --tl-left: 80px;
-
       --tr-top: 16px;      --tr-right: 80px;
+      --bl-bottom: 16px;   --bl-left: 80px;
+      --cap-bottom: var(--bl-bottom);
+      --cap-right: 80px;
 
-      --bl-bottom: 16px;   --bl-left: 80px;   /* logo bottom/left */
-      --cap-bottom: var(--bl-bottom);         /* caption matches logo vertically */
-      --cap-right: 80px;                      /* caption from right */
-
-      /* sizes/weights (desktop) */
       --tl-size: 14px;  --tl-weight: 400;  --tl-ls: .04em;
       --tr-size: 14px;  --tr-weight: 400;  --tr-ls: .04em;
-      --bl-logo: 42px;  /* logo width */
+      --bl-logo: 42px;
       --cap-size: 13px; --cap-weight: 700; --cap-ls: .04em;
 
-      /* caption background off by default on desktop */
       --cap-bg: transparent; --cap-pad-v: 0px; --cap-pad-h: 0px; --cap-radius: 0px;
     }
 
-    /* ======= MOBILE VARIABLES (<768px) =======
-       Change these to tweak ONLY mobile layout.
-       They do NOT affect desktop settings above.
-    ------------------------------------------------------*/
+    /* ===== MOBILE VARIABLES ===== */
     @media (max-width: 767px) {
       :root {
-        /* positions */
         --tl-top: 8px;      --tl-left: 40px;
-
         --tr-top: 8px;      --tr-right: 40px;
-
         --bl-bottom: 8px;   --bl-left: 40px;
-        --cap-bottom: var(--bl-bottom);   /* keep caption aligned vertically with logo */
+        --cap-bottom: var(--bl-bottom);
         --cap-right: 40px;
 
-        /* sizes/weights (mobile) */
         --tl-size: 14px;  --tl-weight: 400;  --tl-ls: .02em;
         --tr-size: 14px;  --tr-weight: 400;  --tr-ls: .02em;
         --bl-logo: 28px;
         --cap-size: 13px; --cap-weight: 600; --cap-ls: .02em;
 
-        /* help readability on bright photos (mobile only) */
         --cap-bg: rgba(0,0,0,.35); --cap-pad-v: 4px; --cap-pad-h: 6px; --cap-radius: 4px;
       }
     }
 
-    /* ========== FIXED UI ========== */
+    /* ===== FIXED UI ===== */
     .ui { position: fixed; z-index: 5; }
 
     .top-left  {
@@ -94,12 +71,12 @@
     }
     .bottom-left img { width: var(--bl-logo); height: auto; display: block; }
 
-    /* ========== CAROUSEL ========== */
+    /* ===== CAROUSEL ===== */
     .carousel { position: fixed; inset: 0; overflow: hidden; }
     .track{
       display: flex; height: 100%;
       will-change: transform;
-      touch-action: pan-y;  /* capture horizontal swipes on iOS */
+      touch-action: pan-y;
       cursor: grab;
     }
     .track.dragging { cursor: grabbing; }
@@ -115,17 +92,21 @@
       pointer-events:none; -webkit-user-drag: none;
     }
 
-    /* Caption: positioned independently (bottom-right),
-       but shares vertical with logo via --cap-bottom */
+    /* ===== CAPTION ===== */
     .slide-caption{
       position: absolute;
       right: var(--cap-right);
       bottom: var(--cap-bottom);
-      font-size: var(--cap-size); font-weight: var(--cap-weight); letter-spacing: var(--cap-ls);
+      font-size: var(--cap-size);
+      font-weight: var(--cap-weight);
+      letter-spacing: var(--cap-ls);
       pointer-events: none;
       background: var(--cap-bg);
       padding: var(--cap-pad-v) var(--cap-pad-h);
       border-radius: var(--cap-radius);
+
+      /* Center vertically with logo image */
+      transform: translateY(calc((var(--bl-logo) - 1em) / -2));
     }
   </style>
 </head>
