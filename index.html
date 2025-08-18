@@ -6,7 +6,6 @@
   <title>Crosby Studios</title>
 
   <style>
-    /* ---- Base / Reset ---- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root { --ui-pad: 16px; --ui-color: #fff; }
     html, body { height: 100%; }
@@ -17,7 +16,7 @@
       background: #000;
     }
 
-    /* ---- Fixed UI ---- */
+    /* Fixed UI */
     .top-left, .top-right, .bottom-left {
       position: fixed; z-index: 5; font-size: 14px; letter-spacing: .04em;
       text-shadow: 0 1px 2px rgba(0,0,0,.35);
@@ -28,7 +27,7 @@
     .bottom-left { bottom: var(--ui-pad); left: var(--ui-pad); }
     .bottom-left img { width: 42px; height: auto; display: block; }
 
-    /* ---- Carousel ---- */
+    /* Carousel */
     .carousel { position: fixed; inset: 0; overflow: hidden; }
     .track {
       display: flex; height: 100%;
@@ -49,10 +48,6 @@
       text-shadow: 0 1px 2px rgba(0,0,0,.35);
       pointer-events: none;
     }
-    .slide::after {
-      content:""; position:absolute; inset:0; pointer-events:none;
-      background: linear-gradient(90deg, rgba(0,0,0,.05), transparent 8%, transparent 92%, rgba(0,0,0,.05));
-    }
   </style>
 </head>
 <body>
@@ -63,11 +58,11 @@
 
   <!-- Carousel -->
   <div class="carousel" id="carousel">
-    <div class="track" id="track"><!-- slides injected by JS --></div>
+    <div class="track" id="track"></div>
   </div>
 
   <script>
-    /* ---------------- CONFIG ---------------- */
+    // Slides config
     const slides = [
       { src: "images/photo1.jpeg", caption: "THE FOAM ROOM" },
       { src: "images/photo2.jpeg", caption: "MIRROR INSTALLATION" },
@@ -76,26 +71,23 @@
 
     const track = document.getElementById("track");
 
-    /* --- Build track with clones for infinite loop --- */
     function makeSlide(data, extraClass = "") {
       const el = document.createElement("div");
       el.className = `slide ${extraClass}`.trim();
       el.style.backgroundImage = `url('${data.src}')`;
-
       const cap = document.createElement("div");
       cap.className = "slide-caption";
       cap.textContent = data.caption || "";
       el.appendChild(cap);
-
       return el;
     }
 
-    track.innerHTML = "";
-    track.appendChild(makeSlide(slides[slides.length - 1], "clone")); // leading clone
+    // Build slides with clones
+    track.appendChild(makeSlide(slides[slides.length - 1], "clone"));
     slides.forEach(s => track.appendChild(makeSlide(s)));
-    track.appendChild(makeSlide(slides[0], "clone")); // trailing clone
+    track.appendChild(makeSlide(slides[0], "clone"));
 
-    /* --- State --- */
+    // State
     let index = 1;
     let x = -index * window.innerWidth;
     let isDown = false;
@@ -109,13 +101,13 @@
     }
     setTransform(x);
 
-    /* --- Resize --- */
+    // Resize
     window.addEventListener("resize", () => {
       x = -index * window.innerWidth;
       setTransform(x);
     });
 
-    /* --- Drag / Swipe --- */
+    // Drag / swipe
     function pointerDown(clientX) {
       isDown = true; startX = clientX;
       track.classList.add("dragging");
@@ -153,10 +145,10 @@
     }, { passive: true });
     track.addEventListener("touchend", () => pointerUp(lastTouchX ?? 0), { passive: true });
 
-    // Prevent image drag
+    // Prevent drag of images
     track.addEventListener("dragstart", e => e.preventDefault());
 
-    /* --- Navigation / Looping --- */
+    // Navigation / Looping
     function goTo(newIndex) {
       index = newIndex;
       x = -index * window.innerWidth;
@@ -175,7 +167,7 @@
       }, { once: true });
     }
 
-    /* --- Autoplay --- */
+    // Autoplay
     function startAuto() {
       cancelAuto();
       autoTimer = setInterval(() => goTo(index + 1), 5000);
@@ -186,7 +178,7 @@
     }
     startAuto();
 
-    /* --- Keyboard --- */
+    // Keyboard arrows
     window.addEventListener("keydown", (e) => {
       if (e.key === "ArrowRight") { cancelAuto(); goTo(index + 1); startAuto(); }
       if (e.key === "ArrowLeft")  { cancelAuto(); goTo(index - 1); startAuto(); }
