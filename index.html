@@ -154,4 +154,51 @@
       const delta = e.clientX - dragStartX;
       const threshold = innerWidth * 0.15;
 
-      i
+      if (delta < -threshold) goTo(index + 1);
+      else if (delta > threshold) goTo(index - 1);
+      else setX(baseX, true);
+
+      startAuto();
+    }
+    track.addEventListener("pointerup", endDrag);
+    track.addEventListener("pointercancel", endDrag);
+    track.addEventListener("dragstart", (e) => e.preventDefault());
+
+    /* ------------ Navigation / Looping ------------ */
+    function goTo(newIndex){
+      index = newIndex;
+      baseX = -index * innerWidth;
+      setX(baseX, true);
+
+      track.addEventListener("transitionend", () => {
+        if (index === 0){
+          index = slides.length;
+          baseX = -index * innerWidth;
+          setX(baseX, false);
+        } else if (index === slides.length + 1){
+          index = 1;
+          baseX = -index * innerWidth;
+          setX(baseX, false);
+        }
+      }, { once: true });
+    }
+
+    /* ------------ Autoplay ------------ */
+    function startAuto(){
+      stopAuto();
+      autoTimer = setInterval(() => goTo(index + 1), 5000);
+    }
+    function stopAuto(){
+      if (autoTimer) clearInterval(autoTimer);
+      autoTimer = null;
+    }
+    startAuto();
+
+    /* Optional keyboard */
+    addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight"){ stopAuto(); goTo(index + 1); startAuto(); }
+      if (e.key === "ArrowLeft"){  stopAuto(); goTo(index - 1); startAuto(); }
+    });
+  </script>
+</body>
+</html>
