@@ -5,54 +5,101 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Crosby Studios</title>
   <style>
-    /* ---------- Base ---------- */
+    /* ========== GLOBAL RESET ==========
+       Desktop and Mobile each have their own variable sets below.
+       Edit ONLY the block you want and they won't affect each other.
+    =================================== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root{
-      /* control distances */
-      --pad-top: 15px;       /* closer or further from top */
-      --pad-bottom: 15px;    /* closer or further from bottom */
-      --pad-left: 30px;      /* move inward from left edge */
-      --pad-right: 30px;     /* move inward from right edge */
-
-      /* fonts + logo */
-      --ui-color: #fff;
-      --ui-size: 16px;
-      --cap-size: 16px;
-      --logo-size: 80px;
-      --ui-weight: 400;
-      --ui-lspace: 0.00em;
-    }
     html, body { height: 100%; }
-    body{
+    body {
       font-family: Arial, Helvetica, sans-serif;
-      color: var(--ui-color);
-      overflow: hidden;
+      color: #fff;
       background: #000;
+      overflow: hidden;
       -webkit-user-select: none; user-select: none;
       -webkit-touch-callout: none;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ---------- Fixed UI ---------- */
-    .ui {
-      position: fixed; z-index: 5;
-      font-size: var(--ui-size);
-      letter-spacing: var(--ui-lspace);
-      font-weight: var(--ui-weight);
-    }
-    .top-left  { top: var(--pad-top); left: var(--pad-left); }
-    .top-right { top: var(--pad-top); right: var(--pad-right); }
-    .bottom-left { bottom: var(--pad-bottom); left: var(--pad-left); }
-    .top-right a { color: var(--ui-color); text-decoration: none; }
-    .bottom-left img { width: var(--logo-size); height: auto; display: block; }
+    /* ======= DESKTOP / TABLET VARIABLES (≥768px) =======
+       Change these to tweak ONLY desktop/tablet layout.
+       tl = top-left ©
+       tr = top-right INFO
+       bl = bottom-left logo
+       cap = caption (bottom-right by default)
+    ------------------------------------------------------*/
+    :root {
+      /* positions */
+      --tl-top: 16px;      --tl-left: 80px;
 
-    /* ---------- Carousel ---------- */
+      --tr-top: 16px;      --tr-right: 80px;
+
+      --bl-bottom: 16px;   --bl-left: 80px;   /* logo bottom/left */
+      --cap-bottom: var(--bl-bottom);         /* caption matches logo vertically */
+      --cap-right: 80px;                      /* caption from right */
+
+      /* sizes/weights (desktop) */
+      --tl-size: 14px;  --tl-weight: 400;  --tl-ls: .04em;
+      --tr-size: 14px;  --tr-weight: 400;  --tr-ls: .04em;
+      --bl-logo: 42px;  /* logo width */
+      --cap-size: 13px; --cap-weight: 700; --cap-ls: .04em;
+
+      /* caption background off by default on desktop */
+      --cap-bg: transparent; --cap-pad-v: 0px; --cap-pad-h: 0px; --cap-radius: 0px;
+    }
+
+    /* ======= MOBILE VARIABLES (<768px) =======
+       Change these to tweak ONLY mobile layout.
+       They do NOT affect desktop settings above.
+    ------------------------------------------------------*/
+    @media (max-width: 767px) {
+      :root {
+        /* positions */
+        --tl-top: 8px;      --tl-left: 40px;
+
+        --tr-top: 8px;      --tr-right: 40px;
+
+        --bl-bottom: 8px;   --bl-left: 40px;
+        --cap-bottom: var(--bl-bottom);   /* keep caption aligned vertically with logo */
+        --cap-right: 40px;
+
+        /* sizes/weights (mobile) */
+        --tl-size: 14px;  --tl-weight: 400;  --tl-ls: .02em;
+        --tr-size: 14px;  --tr-weight: 400;  --tr-ls: .02em;
+        --bl-logo: 28px;
+        --cap-size: 13px; --cap-weight: 600; --cap-ls: .02em;
+
+        /* help readability on bright photos (mobile only) */
+        --cap-bg: rgba(0,0,0,.35); --cap-pad-v: 4px; --cap-pad-h: 6px; --cap-radius: 4px;
+      }
+    }
+
+    /* ========== FIXED UI ========== */
+    .ui { position: fixed; z-index: 5; }
+
+    .top-left  {
+      top: var(--tl-top); left: var(--tl-left);
+      font-size: var(--tl-size); font-weight: var(--tl-weight); letter-spacing: var(--tl-ls);
+    }
+
+    .top-right {
+      top: var(--tr-top); right: var(--tr-right);
+      font-size: var(--tr-size); font-weight: var(--tr-weight); letter-spacing: var(--tr-ls);
+    }
+    .top-right a { color: #fff; text-decoration: none; }
+
+    .bottom-left {
+      bottom: var(--bl-bottom); left: var(--bl-left);
+    }
+    .bottom-left img { width: var(--bl-logo); height: auto; display: block; }
+
+    /* ========== CAROUSEL ========== */
     .carousel { position: fixed; inset: 0; overflow: hidden; }
     .track{
       display: flex; height: 100%;
       will-change: transform;
-      touch-action: pan-y;
+      touch-action: pan-y;  /* capture horizontal swipes on iOS */
       cursor: grab;
     }
     .track.dragging { cursor: grabbing; }
@@ -67,35 +114,18 @@
       object-fit: cover; object-position: center;
       pointer-events:none; -webkit-user-drag: none;
     }
+
+    /* Caption: positioned independently (bottom-right),
+       but shares vertical with logo via --cap-bottom */
     .slide-caption{
-      position:absolute;
-      right: var(--pad-right);
-      bottom: var(--pad-bottom);
-      font-weight:700;
-      font-size: var(--cap-size);
-      letter-spacing:.04em;
-      pointer-events:none;
-    }
-
-    /* ---------- MOBILE OVERRIDES ---------- */
-    @media (max-width: 767px) {
-      :root{
-        --pad-top: 8px;
-        --pad-bottom: 8px;
-        --pad-left: 40px;
-        --pad-right: 40px;
-
-        --ui-size: 13px;
-        --cap-size: 12px;
-        --logo-size: 28px;
-      }
-      .slide-caption{
-        font-weight: 600;
-        line-height: 1.3;
-        background: rgba(0,0,0,0.35);
-        padding: 4px 6px;
-        border-radius: 4px;
-      }
+      position: absolute;
+      right: var(--cap-right);
+      bottom: var(--cap-bottom);
+      font-size: var(--cap-size); font-weight: var(--cap-weight); letter-spacing: var(--cap-ls);
+      pointer-events: none;
+      background: var(--cap-bg);
+      padding: var(--cap-pad-v) var(--cap-pad-h);
+      border-radius: var(--cap-radius);
     }
   </style>
 </head>
